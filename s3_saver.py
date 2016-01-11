@@ -117,7 +117,7 @@ class S3Saver(object):
 
         path = self._get_s3_path(filename)
         k = bucket.new_key(path)
-        k.set_contents_from_string(temp_file.getvalue())
+        k.set_contents_from_string(temp_file.read())
         k.set_acl(self.acl)
 
         if self.filesize_field:
