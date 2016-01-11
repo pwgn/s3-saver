@@ -1,4 +1,4 @@
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 from glob import glob
 import os
@@ -170,6 +170,16 @@ class S3Saver(object):
     def find_by_path(self, path):
         """Finds files at the specified path / prefix, either on S3 or on the local filesystem."""
 
+        if not (self.storage_type and self.bucket_name):
+            return self._find_by_path_local(path)
+        else:
+            if self.storage_type != 's3':
+                raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % self.storage_type)
+
+            return self._find_by_path_s3(path, self.bucket_name)
+
+    def find_by_filename(self, filename):
+        path = self._get_path(filename)
         if not (self.storage_type and self.bucket_name):
             return self._find_by_path_local(path)
         else:
