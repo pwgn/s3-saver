@@ -1,4 +1,4 @@
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 from glob import glob
 import os
@@ -74,16 +74,16 @@ class S3Saver(object):
         except S3ResponseError:
             pass
 
-    def delete(self, filename, storage_type=None, bucket_name=None):
+    def delete(self, filename):
         """Deletes the specified file, either locally or from S3, depending on the file's storage type."""
 
-        if not (storage_type and bucket_name):
+        if not (self.storage_type and self.bucket_name):
             self._delete_local(filename)
         else:
-            if storage_type != 's3':
+            if self.storage_type != 's3':
                 raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % storage_type)
 
-            self._delete_s3(filename, bucket_name)
+            self._delete_s3(filename, self.bucket_name)
 
     def _save_local(self, temp_file, filename, obj):
         """Saves the specified file to the local file system."""
@@ -167,14 +167,17 @@ class S3Saver(object):
 
         return bucket.list(prefix=s3_path)
 
-    def find_by_path(self, path, storage_type=None, bucket_name=None):
+    def find_by_path(self, path):
         """Finds files at the specified path / prefix, either on S3 or on the local filesystem."""
 
-        if not (storage_type and bucket_name):
+        if not (self.storage_type and self.bucket_name):
             return self._find_by_path_local(path)
         else:
-            if storage_type != 's3':
-                raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % storage_type)
+            if self.storage_type != 's3':
+                raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % self.storage_type)
+
+            return self._find_by_path_s3(path, self.bucket_name)
+
     def download(self, f):
         """Downloads a file returned by find_by_path to the local file system."""
 
