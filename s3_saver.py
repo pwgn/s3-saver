@@ -1,4 +1,4 @@
-__version__ = '0.1.4'
+__version__ = '0.2.0'
 
 from glob import glob
 import os
@@ -175,5 +175,30 @@ class S3Saver(object):
         else:
             if storage_type != 's3':
                 raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % storage_type)
+    def download(self, f):
+        """Downloads a file returned by find_by_path to the local file system."""
 
-            return self._find_by_path_s3(path, bucket_name)
+        if not (self.storage_type and self.bucket_name):
+            ret = f
+        else:
+            if self.storage_type != 's3':
+                raise ValueError('Storage type "%s" is invalid, the only supported storage type (apart from default local storage) is s3.' % self.storage_type)
+
+            file_path = self._download_s3(f)
+
+            ret = file_path
+
+        return ret
+
+    def _download_s3(self, f):
+        """Download file from s3 to local fs"""
+
+        file_path = os.path.join(self.static_root_parent, f.name)
+
+        if not os.path.exists(os.path.dirname(file_path)):
+            os.makedirs(os.path.dirname(file_path))
+
+        with open(file_path, 'w+') as dl_file:
+            f.get_contents_to_file(dl_file)
+
+        return file_path
